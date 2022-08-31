@@ -3,6 +3,7 @@
 git clone https://github.com/sylar-yin/chat_room.git
 cd chat_room
 git submodule update --init --recursive
+git submodule update --remote
 make
 make -j
 sh move.sh
