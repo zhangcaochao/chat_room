@@ -82,6 +82,8 @@ int32_t ChatWSServlet::handle(sylar::http::HttpRequest::ptr header
 
     auto msg = ChatMessage::Create(msgx->getData());
     auto id = header->getHeader("$id");
+
+    //如果msg不存在,且id不为空,则从session列表中移除这个id,这一句话主要是用来判断 一些例外情况
     if(!msg) {
         if(!id.empty()) {
             sylar::RWMutex::WriteLock lock(m_mutex);
@@ -94,6 +96,7 @@ int32_t ChatWSServlet::handle(sylar::http::HttpRequest::ptr header
     auto type = msg->get("type");
     if(type == "login_request") {
         rsp->set("type", "login_response");
+        //登录的时候没有输入登录名
         auto name = msg->get("name");
         if(name.empty()) {
             rsp->set("result", "400");
@@ -116,6 +119,7 @@ int32_t ChatWSServlet::handle(sylar::http::HttpRequest::ptr header
         rsp->set("msg", "ok");
         session_add(id, session);
 
+        //通知聊天室中的所有的人,有人进入聊天室
         ChatMessage::ptr nty(new ChatMessage);
         nty->set("type", "user_enter");
         nty->set("time", sylar::Time2Str());
@@ -139,6 +143,7 @@ int32_t ChatWSServlet::handle(sylar::http::HttpRequest::ptr header
         rsp->set("result", "200");
         rsp->set("msg", "ok");
 
+        //广播通知聊天室的消息
         ChatMessage::ptr nty(new ChatMessage);
         nty->set("type", "msg");
         nty->set("time", sylar::Time2Str());
